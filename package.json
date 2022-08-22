@@ -9,7 +9,7 @@
         "build:dev": "NODE_ENV=development npm run build",
         "clean": "rimraf dist",
         "newaccount": "node scripts/test-node.js && node test/helpers/newAccounts 50",
-        "test": "node scripts/test-node.js && node test/helpers/newAccounts 50 npm run-script newaccount && npx mocha 'test/**/*.test.js'  --timeout 120000",
+        "test": "node scripts/test-node.js && node test/helpers/newAccounts 50 npm run-script newaccount && npx mocha 'test/lib/trx.test.js'  --timeout 120000",
         "testAbi": "node scripts/test-node.js && node test/helpers/newAccounts 1 npm run-script newaccount && npx mocha 'test/**/abi.test.js'  --timeout 120000",
         "testContract": "node scripts/test-node.js && node test/helpers/newAccounts 1 npm run-script newaccount && npx mocha 'test/**/transactionBuilder.test.js'  --timeout 120000",
         "test-no-accounts": "node scripts/test-node.js && npx mocha 'test/**/*.test.js'",
@@ -74,8 +74,7 @@
         "name": "Kondax",
         "url": "https://github.com/Kondax"
     },
-    "contributors": [
-        {
+    "contributors": [{
             "name": "Francesco Sullo",
             "url": "https://github.com/sullof"
         },

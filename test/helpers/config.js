@@ -1,23 +1,23 @@
-const fullHost = "http://127.0.0.1:" + (process.env.HOST_PORT || 9090)
+const fullHost = 'http://18.166.107.51:' + (process.env.HOST_PORT || 9090);
 
 module.exports = {
-
     PRIVATE_KEY: process.env.PRIVATE_KEY,
     CONSUME_USER_RESOURCE_PERCENT: 30,
     FEE_LIMIT: 100000000,
     FULL_NODE_API: fullHost,
     SOLIDITY_NODE_API: fullHost,
     EVENT_API: fullHost,
-    NETWORK_ID: "*",
+    NETWORK_ID: '*',
     ADDRESS_HEX: '41928c9af0651632157ef27a2cf17ca72c575a4d21',
     ADDRESS_BASE58: 'TPL66VK2gCXNCD7EJg9pgJRfqcRazjhUZY',
     UPDATED_TEST_TOKEN_OPTIONS: {
         description: 'Very useless utility token',
         url: 'https://none.example.com',
         freeBandwidth: 10,
-        freeBandwidthLimit: 100
+        freeBandwidthLimit: 100,
     },
-    SIGNED_HEX_TRANSACTION: '0a85010a02380a220830202d4c1473d46640d8edabfea72f5a67080112630a2d747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e5472616e73666572436f6e747261637412320a1541fbbb1a37f9fbc18a3e2b8fd8c0823251cd3b8ee8121541af4852489314e72ffae825238c52d0e1ffff1ead18c0843d70f182cffca72f1241fa301a789dc51714be33b0f298e3f990650bec285ab628ab8ea5f18aeb3466643ca89b604d9df74fa19a11235e0d7ab974322f0097eefe0b7efb38ea9ce4cf6601',
+    SIGNED_HEX_TRANSACTION:
+        '0a85010a02380a220830202d4c1473d46640d8edabfea72f5a67080112630a2d747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e5472616e73666572436f6e747261637412320a1541fbbb1a37f9fbc18a3e2b8fd8c0823251cd3b8ee8121541af4852489314e72ffae825238c52d0e1ffff1ead18c0843d70f182cffca72f1241fa301a789dc51714be33b0f298e3f990650bec285ab628ab8ea5f18aeb3466643ca89b604d9df74fa19a11235e0d7ab974322f0097eefe0b7efb38ea9ce4cf6601',
     TEST_TRON_GRID_API: 'http://47.252.84.138:29086',
     TEST_TRON_HEADER_API_KEY: 'be815f09-e30f-4b98-b84d-0bb41f0708fd',
     TEST_TRON_HEADER_API_JWT_KEY: '95057b57-a2bd-4bd5-9337-5b52cb2b3bc2',
@@ -65,17 +65,17 @@ Djyb5403LJztsxdExbyQkm++Gg631CZus4xA77wMafGw37IhCE6sTBo=
             tokenRatio: 2,
             saleStart: Date.now() + 500,
             freeBandwidth: 100,
-            freeBandwidthLimit: 1000
-        }
+            freeBandwidthLimit: 1000,
+        };
     },
     isProposalApproved: async (tronWeb, proposal) => {
-        let chainParameters = await tronWeb.trx.getChainParameters()
-        for(let param of chainParameters) {
-            if(param.key === proposal) {
-                return param.value
+        let chainParameters = await tronWeb.trx.getChainParameters();
+        for (let param of chainParameters) {
+            if (param.key === proposal) {
+                return param.value;
             }
         }
-        return false
+        return false;
     },
     SUN_NETWORK: process.env.SUN_NETWORK,
     SIDE_CHAIN: {
@@ -88,8 +88,8 @@ Djyb5403LJztsxdExbyQkm++Gg631CZus4xA77wMafGw37IhCE6sTBo=
             eventServer: 'https://suntest.tronex.io',
             mainGatewayAddress: 'TFLtPoEtVJBMcj6kZPrQrwEdM3W3shxsBU',
             sideGatewayAddress: 'TRDepx5KoQ8oNbFVZ5sogwUxtdYmATDRgX',
-            sideChainId: '413AF23F37DA0D48234FDD43D89931E98E1144481B'
-        }
+            sideChainId: '413AF23F37DA0D48234FDD43D89931E98E1144481B',
+        },
     },
     TOKEN_ID: 1000003,
     DEPOSIT_FEE: 0,
@@ -113,5 +113,5 @@ Djyb5403LJztsxdExbyQkm++Gg631CZus4xA77wMafGw37IhCE6sTBo=
 
     ADDRESS721_MAPPING: 'TWU8w6qrqb42x9gt5NRGdzXD6xjgzEvnK1',
     ADDRESS721_MAPPING_HEX: '41e0db2ebd7619fc7d4af7d4cd04515c4f77840d45',
-    TRC721_ID: 1
-}
+    TRC721_ID: 1,
+};
