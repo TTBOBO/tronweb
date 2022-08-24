@@ -8,6 +8,7 @@ import {
 } from 'utils/ethersUtils';
 import { ADDRESS_PREFIX } from 'utils/address';
 import Validator from '../paramValidator';
+import IdMapping from './id_mapping';
 import injectpromise from 'injectpromise';
 
 const TRX_MESSAGE_HEADER = '\x19TRON Signed Message:\n32';
@@ -29,6 +30,9 @@ export default class Trx {
             contracts: {},
         };
         this.validator = new Validator(tronWeb);
+        this.idMapping = new IdMapping();
+        this.callbacks = new Map();
+        this.wrapResults = new Map();
     }
 
     _parseToken(token) {
@@ -960,44 +964,45 @@ export default class Trx {
             multisig = false;
         }
 
-        if (!callback)
-            return this.injectPromise(
-                this.sign,
-                transaction,
-                privateKey,
-                useTronHeader,
-                multisig
-            );
+        // if (!callback)
+        //     this.injectPromise(
+        //         this.sign,
+        //         transaction,
+        //         privateKey,
+        //         useTronHeader,
+        //         multisig
+        //     );
 
         // Message signing
         if (utils.isString(transaction)) {
             if (!utils.isHex(transaction))
-                return callback('Expected hex message input');
+                throw new Error('Expected hex message input');
 
             try {
-                const signatureHex = Trx.signString(
-                    transaction,
-                    privateKey,
-                    useTronHeader
-                );
-                return callback(null, signatureHex);
+                // const signatureHex = Trx.signString(
+                //     transaction,
+                //     '2e2ea8b45e468c546d00b81adad9ae038b822bd3e1f4d71ded313b3394bb189b',
+                //     useTronHeader
+                // );
+                return this._request({
+                    data: transaction,
+                    method: 'sign',
+                });
+                // return callback(null, signatureHex);
             } catch (ex) {
-                callback(ex);
+                throw new Error(ex);
             }
         }
 
         if (!utils.isObject(transaction))
-            return callback('Invalid transaction provided');
+            throw new Error('Invalid transaction provided');
 
         if (!multisig && transaction.signature)
-            return callback('Transaction is already signed');
+            throw new Error('Transaction is already signed');
 
         try {
             if (!multisig) {
-                const address = this.tronWeb.address
-                    .toHex(this.tronWeb.address.fromPrivateKey(privateKey))
-                    .toLowerCase();
-
+                const address = this.tronWeb.defaultAddress.hex;
                 if (
                     address !==
                     this.tronWeb.address.toHex(
@@ -1005,16 +1010,21 @@ export default class Trx {
                             .owner_address
                     )
                 )
-                    return callback(
+                    throw new Error(
                         'Private key does not match address in transaction'
                     );
             }
-            return callback(
-                null,
-                utils.crypto.signTransaction(privateKey, transaction)
-            );
+            return this._request({
+                data: transaction,
+                method: 'signTransaction',
+            });
+
+            // callback(
+            //     null,
+            //     utils.crypto.signTransaction(privateKey, transaction)
+            // );
         } catch (ex) {
-            callback(ex);
+            throw new Error(ex);
         }
     }
 
@@ -1026,15 +1036,20 @@ export default class Trx {
             },
             value: privateKey,
         };
+        console.log(value);
         const signingKey = new SigningKey(value);
+        console.log(signingKey);
         const messageBytes = [
             ...toUtf8Bytes(
                 useTronHeader ? TRX_MESSAGE_HEADER : ETH_MESSAGE_HEADER
             ),
             ...utils.code.hexStr2byteArray(message),
         ];
+        console.log(messageBytes);
         const messageDigest = keccak256(messageBytes);
+        console.log(messageDigest);
         const signature = signingKey.signDigest(messageDigest);
+        console.log(signature);
         const signatureHex = [
             '0x',
             signature.r.substring(2),
@@ -1056,25 +1071,33 @@ export default class Trx {
             privateKey = this.tronWeb.defaultPrivateKey;
         }
 
-        if (!callback)
-            return this.injectPromise(
-                this._signTypedData,
-                domain,
-                types,
-                value,
-                privateKey
-            );
+        // if (!callback)
+        //     return this.injectPromise(
+        //         this._signTypedData,
+        //         domain,
+        //         types,
+        //         value,
+        //         privateKey
+        //     );
 
         try {
-            const signatureHex = Trx._signTypedData(
-                domain,
-                types,
-                value,
-                privateKey
-            );
-            return callback(null, signatureHex);
+            // const signatureHex = Trx._signTypedData(
+            //     domain,
+            //     types,
+            //     value,
+            //     privateKey
+            // );
+            return this._request({
+                data: {
+                    domain,
+                    types,
+                    value,
+                },
+                method: 'signTypedData',
+            });
+            // return callback(null, signatureHex);
         } catch (ex) {
-            callback(ex);
+            throw new Error(ex);
         }
     }
 
@@ -1099,20 +1122,20 @@ export default class Trx {
             permissionId = 0;
         }
 
-        if (!callback)
-            return this.injectPromise(
-                this.multiSign,
-                transaction,
-                privateKey,
-                permissionId
-            );
+        // if (!callback)
+        //     return this.injectPromise(
+        //         this.multiSign,
+        //         transaction,
+        //         privateKey,
+        //         permissionId
+        //     );
 
         if (
             !utils.isObject(transaction) ||
             !transaction.raw_data ||
             !transaction.raw_data.contract
         )
-            return callback('Invalid transaction provided');
+            throw new Error('Invalid transaction provided');
 
         // If owner permission or permission id exists in transaction, do sign directly
         // If no permission id inside transaction or user passes permission id, use old way to reset permission id
@@ -1133,7 +1156,7 @@ export default class Trx {
             );
 
             if (signWeight.result.code === 'PERMISSION_ERROR') {
-                return callback(signWeight.result.message);
+                throw new Error(signWeight.result.message);
             }
 
             let foundKey = false;
@@ -1142,13 +1165,13 @@ export default class Trx {
             });
 
             if (!foundKey)
-                return callback(privateKey + ' has no permission to sign');
+                throw new Error(privateKey + ' has no permission to sign');
 
             if (
                 signWeight.approved_list &&
                 signWeight.approved_list.indexOf(address) != -1
             ) {
-                return callback(privateKey + ' already sign transaction');
+                throw new Error(privateKey + ' already sign transaction');
             }
 
             // reset transaction
@@ -1159,18 +1182,92 @@ export default class Trx {
                         permissionId;
                 }
             } else {
-                return callback('Invalid transaction provided');
+                throw new Error('Invalid transaction provided');
             }
         }
 
         // sign
         try {
-            return callback(
-                null,
-                utils.crypto.signTransaction(privateKey, transaction)
-            );
+            return this._request({
+                data: transaction,
+                method: 'signTransaction',
+            });
+            // return callback(
+            //     null,
+            //     utils.crypto.signTransaction(privateKey, transaction)
+            // );
         } catch (ex) {
-            callback(ex);
+            throw new Error(ex);
+        }
+    }
+
+    _request(payload) {
+        this.idMapping.tryIntifyId(payload);
+        console.log(`==> _request1 payload ${JSON.stringify(payload)}`);
+        return new Promise((resolve, reject) => {
+            if (!payload.id) {
+                payload.id = this.idMapping.genId();
+            }
+            this.callbacks.set(payload.id, (error, data) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(data);
+                }
+            });
+            this.wrapResults.set(payload.id, true);
+            this.postMessage(payload.method, payload.id, payload.data);
+        });
+    }
+    /**
+     * transfer data to native app
+     * @param {*} handler method name
+     * @param {*} id call method name unique id
+     * @param {*} data request parameter
+     */
+    postMessage(handler, id, data) {
+        const object = JSON.stringify({
+            id,
+            name: handler,
+            object: data,
+        });
+        if (window.GSWallet.postMessage) {
+            window.GSWallet.postMessage(object);
+        } else {
+            window.webkit.messageHandlers[handler].postMessage(object);
+        }
+    }
+
+    /**
+     * accept native app data and return it to dapp
+     * @param {*} id  call method name unique id
+     * @param {*} result  signed data
+     */
+    sendResponse(id, result) {
+        let originId = this.idMapping.tryPopId(id) || id;
+        let callback = this.callbacks.get(id);
+        let wrapResult = this.wrapResults.get(id);
+        console.log(
+            `<== sendResponse id: ${id}, result: ${JSON.stringify(
+                result
+            )}, data: ${JSON.stringify(result)}`
+        );
+        if (callback) {
+            callback(null, result);
+            this.callbacks.delete(id);
+        } else {
+            console.log(`callback id: ${id} not found`);
+            // check if it's iframe callback
+            for (var i = 0; i < window.frames.length; i++) {
+                const frame = window.frames[i];
+                try {
+                    if (frame.ethereum.callbacks.has(id)) {
+                        frame.ethereum.sendResponse(id, result);
+                    }
+                } catch (error) {
+                    console.log(`send response to frame error: ${error}`);
+                }
+            }
         }
     }
 
@@ -1319,13 +1416,14 @@ export default class Trx {
 
         if (typeof options === 'string') options = { privateKey: options };
 
-        if (!callback)
+        if (!callback) {
             return this.injectPromise(
                 this.sendTransaction,
                 to,
                 amount,
                 options
             );
+        }
 
         if (!this.tronWeb.isAddress(to))
             return callback('Invalid recipient provided');
@@ -1358,7 +1456,6 @@ export default class Trx {
                 options.privateKey || undefined
             );
             const result = await this.sendRawTransaction(signedTransaction);
-
             return callback(null, result);
         } catch (ex) {
             return callback(ex);

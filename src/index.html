@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .list {
+            border: 1px solid #cfcfcf;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            padding: 5px;
+        }
+        
+        .item {
+            min-height: 50px;
+            border-bottom: 1px solid #cfcfcf;
+        }
+        
+        .item:last-child {
+            border: none;
+        }
+        
+        .title,
+        .message {
+            display: flex;
+            align-items: center;
+        }
+        
+        .title {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .btn {
+            width: 80px;
+            height: 30px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: antiquewhite;
+            border-radius: 5px;
+            float: right;
+            color: #333;
+        }
+        
+        .sign-res {
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div v-for="(item,index) in signDataConfig" :key="index" class="list">
+            <div class="title item">
+                <span>签名标题：{{item.title}}</span>
+                <div class="btn" @click="handClick(index)">发起签名</div>
+            </div>
+            <div class="message item">签名数据：{{item.message}}</div>
+            <div class="sign-res item">签名结果：{{item.signRes}}</div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vconsole@latest/dist/vconsole.min.js"></script>
+    <script src="../dist//TronWeb.js"></script>
+    <script>
+        const {
+            createApp
+        } = Vue
+
+        createApp({
+            data() {
+                return {
+                    message: 'Hello Vue!02',
+                    signData: [],
+                }
+            },
+            computed: {
+                signDataConfig() {
+                    return [{
+                        title: "sign",
+                        message: "a",
+                        signRes: this.signData[0] || ''
+                    }, {
+                        title: "signTransaction",
+                        message: "暂无",
+                        signRes: this.signData[1] || ''
+                    }, {
+                        title: "signTypedData",
+                        message: "暂无",
+                        signRes: this.signData[2] || ''
+                    }, {
+                        title: "测试网调用合约",
+                        message: "暂无",
+                        signRes: this.signData[3] || ''
+                    }, {
+                        title: "正式网调用合约",
+                        message: "暂无",
+                        signRes: this.signData[3] || ''
+                    }]
+                }
+            },
+            methods: {
+                // await  a.trx.sign(temp1)
+                // await tronWeb.trx.sign(temp1)
+                // await  a.trx.sendResponse(1661239151378,temp2)
+                async init() {
+                    // console.log(window.tronWeb);
+
+                    const tronWeb = new TronWeb({
+                        fullHost: 'https://api.shasta.trongrid.io',
+                        privateKey: "5f4e397a40ac711823e0bc31997579550aededec2989e40a5b06a3ec0085b871"
+                    })
+                    tronWeb.setAddress("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1")
+                    console.log(tronWeb);
+                    window.a = tronWeb
+                    return;
+                    //     // const res = await tronWeb.trx.sendTrx("TAA9h5NmoYGBRD2uq6bXc3caAe4wrTBV2Q", 1);
+
+                    // // console.l og("await_res：", res);
+                    let contract = await tronWeb.contract().at('TJyoWNGKQR2EaVjjaL6nb5putfQ5MJtnsE');
+                    // const result = await contract.allowance("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1", 'TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG').call();
+                    const result = await contract.approve("TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG", 1).send({
+                        // feeLimit: 1000000000
+                    });
+                    console.log(result)
+                        // const signStr = await tronWeb.trx.sign('a')
+                        // console.log(signStr);
+                },
+                async handClick(index) {
+                    switch (index) {
+                        case 0:
+                            return this.sign();
+                        case 1:
+                            return this.signTransaction();
+                        case 2:
+                            return this.signTypedData();
+                        case 3:
+                            return this.tigger();
+                        case 4:
+                            return this.tigger1();
+                        default:
+                            break;
+                    }
+                },
+                async tigger1() {
+
+                    let contract = await tronWeb.contract().at('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
+                    const result = await contract.approve("TPYmHEhy5n8TCEfYGqW2rPxsghSfzghPDn", 1).send();
+                    console.log(result)
+                    await contract.allowance("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1", 'TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG').call();
+                },
+                async tigger() {
+                    // let contract = await window.a.contract().at('TJyoWNGKQR2EaVjjaL6nb5putfQ5MJtnsE');
+                    // console.log(contract);
+                    // // const result = await contract.allowance("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1", 'TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG').call();
+                    // const result = await contract.approve("TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG", 1).send({
+                    //     // feeLimit: 1000000000
+                    // });
+                    // console.log(result)
+
+                    let contract = await tronWeb.contract().at('TJyoWNGKQR2EaVjjaL6nb5putfQ5MJtnsE');
+                    const result = await contract.approve("TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG", 1).send();
+                    console.log(result)
+                        // await contract.allowance("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1", 'TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG').call();
+                },
+                async sign() {
+                    console.log(window.GSWallet);
+                    // window.GSWallet.postMessage(JSON.stringify({
+                    //     id: 456456,
+                    //     name: "sign",
+                    //     object: '061',
+                    // }));
+                    const signStr = await tronWeb.trx.sign(tronWeb.toHex("a"));
+                    this.signData[0] = signStr
+                },
+                async signTransaction() {
+                    const res = await tronWeb.trx.sendTrx("TAA9h5NmoYGBRD2uq6bXc3caAe4wrTBV2Q", 1);
+                    this.signData[1] = res.transaction.signature[0]
+                },
+                async signTypedData() {
+                    const domain = {
+                        name: 'TRON Mail',
+                        version: '1',
+                        chainId: '0x2b6653dc',
+                        verifyingContract: 'TUe6BwpA7sVTDKaJQoia7FWZpC9sK8WM2t'
+                    };
+                    const types = {
+                        Person: [{
+                            name: 'name',
+                            type: 'string'
+                        }, {
+                            name: 'wallet',
+                            type: 'address'
+                        }],
+                        Mail: [{
+                            name: 'from',
+                            type: 'Person'
+                        }, {
+                            name: 'to',
+                            type: 'Person'
+                        }, {
+                            name: 'contents',
+                            type: 'string'
+                        }]
+                    };
+
+                    // The data to sign
+                    const value = {
+                        from: {
+                            name: 'Cow',
+                            wallet: 'TUg28KYvCXWW81EqMUeZvCZmZw2BChk1HQ'
+                        },
+                        to: {
+                            name: 'Bob',
+                            wallet: 'TT5rFsXYCrnzdE2q1WdR9F2SuVY59A4hoM'
+                        },
+                        contents: 'Hello, Bob!'
+                    };
+
+                    const signature = await tronWeb.trx._signTypedData(domain, types, value);
+                    this.signData[1] = signature
+                }
+            },
+            async mounted() {
+                // new VConsole();
+                await this.init();
+
+
+            },
+        }).mount('#app')
+    </script>
+    <script>
+        const injectpromise = function(scope) {
+            return (func2, ...args) => {
+                return (function(func1, ...args) {
+                    return new Promise((resolve, reject) => {
+                        func1(...args, (err, res) => {
+                            if (err) {
+                                reject(err)
+                            } else {
+                                resolve(res)
+                            }
+                        })
+                    })
+                })(func2.bind(scope), ...args)
+            }
+        }
+
+        // class Test {
+        //     constructor() {
+        //         this.injectpromise = injectpromise(this);
+        //         this.a = 'a'
+        //         console.log(this.injectpromise);
+        //         // const res = this.init('a');
+        //         // console.log(res);
+        //     }
+        //     init(str, privateKey) {
+        //         console.log(str, privateKey);
+        //         return this.injectpromise(this.init, str)
+        //     }
+        //     test() {
+        //         console.log(1);
+        //         Test.test1();
+        //     }
+        //     static test1() {
+        //         console.log(2);
+        //         console.log(Test.a);
+        //     }
+        // }
+        // console.log(new Test());
+    </script>
+</body>
+
+</html>

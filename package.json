@@ -2,7 +2,7 @@
     "name": "tronweb",
     "version": "4.3.0",
     "description": "JavaScript SDK that encapsulates the TRON HTTP API",
-    "main": "dist/TronWeb.node.js",
+    "main": "src/index.js",
     "scripts": {
         "prepare": "npm run build",
         "build": "npm run clean && webpack --config webpack.config.js --progress --color",
@@ -15,7 +15,8 @@
         "test-no-accounts": "node scripts/test-node.js && npx mocha 'test/**/*.test.js'",
         "test:browser": "npm run-script newaccount && node scripts/test-browser.js && npx karma start --single-run --browsers ChromeHeadless",
         "coverage": "npm run-script test:browser && npm run-script test",
-        "btest": "npm run build:dev && npm run test"
+        "btest": "npm run build:dev && npm run test",
+        "start": "webpack --watch --config ./webpack.config.js"
     },
     "husky": {
         "hooks": {
