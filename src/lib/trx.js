@@ -8,7 +8,8 @@ import {
 } from 'utils/ethersUtils';
 import { ADDRESS_PREFIX } from 'utils/address';
 import Validator from '../paramValidator';
-import IdMapping from './id_mapping';
+import TransitionPostMessage from './transitionPostMessage';
+
 import injectpromise from 'injectpromise';
 
 const TRX_MESSAGE_HEADER = '\x19TRON Signed Message:\n32';
@@ -26,13 +27,13 @@ export default class Trx {
 
         this.tronWeb = tronWeb;
         this.injectPromise = injectpromise(this);
+        window.transitionPostMessage = new TransitionPostMessage({
+            isDebugger: false,
+        });
         this.cache = {
             contracts: {},
         };
         this.validator = new Validator(tronWeb);
-        this.idMapping = new IdMapping();
-        this.callbacks = new Map();
-        this.wrapResults = new Map();
     }
 
     _parseToken(token) {
@@ -984,7 +985,7 @@ export default class Trx {
                 //     '2e2ea8b45e468c546d00b81adad9ae038b822bd3e1f4d71ded313b3394bb189b',
                 //     useTronHeader
                 // );
-                return this._request({
+                return window.transitionPostMessage._request({
                     data: transaction,
                     method: 'sign',
                 });
@@ -1014,7 +1015,8 @@ export default class Trx {
                         'Private key does not match address in transaction'
                     );
             }
-            return this._request({
+            console.log(utils.crypto.signTransaction(privateKey, transaction));
+            return window.transitionPostMessage._request({
                 data: transaction,
                 method: 'signTransaction',
             });
@@ -1087,7 +1089,7 @@ export default class Trx {
             //     value,
             //     privateKey
             // );
-            return this._request({
+            return window.transitionPostMessage._request({
                 data: {
                     domain,
                     types,
@@ -1188,7 +1190,7 @@ export default class Trx {
 
         // sign
         try {
-            return this._request({
+            return window.transitionPostMessage._request({
                 data: transaction,
                 method: 'signTransaction',
             });
@@ -1198,76 +1200,6 @@ export default class Trx {
             // );
         } catch (ex) {
             throw new Error(ex);
-        }
-    }
-
-    _request(payload) {
-        this.idMapping.tryIntifyId(payload);
-        console.log(`==> _request1 payload ${JSON.stringify(payload)}`);
-        return new Promise((resolve, reject) => {
-            if (!payload.id) {
-                payload.id = this.idMapping.genId();
-            }
-            this.callbacks.set(payload.id, (error, data) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(data);
-                }
-            });
-            this.wrapResults.set(payload.id, true);
-            this.postMessage(payload.method, payload.id, payload.data);
-        });
-    }
-    /**
-     * transfer data to native app
-     * @param {*} handler method name
-     * @param {*} id call method name unique id
-     * @param {*} data request parameter
-     */
-    postMessage(handler, id, data) {
-        const object = JSON.stringify({
-            id,
-            name: handler,
-            object: data,
-        });
-        if (window.GSWallet.postMessage) {
-            window.GSWallet.postMessage(object);
-        } else {
-            window.webkit.messageHandlers[handler].postMessage(object);
-        }
-    }
-
-    /**
-     * accept native app data and return it to dapp
-     * @param {*} id  call method name unique id
-     * @param {*} result  signed data
-     */
-    sendResponse(id, result) {
-        let originId = this.idMapping.tryPopId(id) || id;
-        let callback = this.callbacks.get(id);
-        let wrapResult = this.wrapResults.get(id);
-        console.log(
-            `<== sendResponse id: ${id}, result: ${JSON.stringify(
-                result
-            )}, data: ${JSON.stringify(result)}`
-        );
-        if (callback) {
-            callback(null, result);
-            this.callbacks.delete(id);
-        } else {
-            console.log(`callback id: ${id} not found`);
-            // check if it's iframe callback
-            for (var i = 0; i < window.frames.length; i++) {
-                const frame = window.frames[i];
-                try {
-                    if (frame.ethereum.callbacks.has(id)) {
-                        frame.ethereum.sendResponse(id, result);
-                    }
-                } catch (error) {
-                    console.log(`send response to frame error: ${error}`);
-                }
-            }
         }
     }
 
