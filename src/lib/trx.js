@@ -9,7 +9,6 @@ import {
 import { ADDRESS_PREFIX } from 'utils/address';
 import Validator from '../paramValidator';
 import TransitionPostMessage from './transitionPostMessage';
-
 import injectpromise from 'injectpromise';
 
 const TRX_MESSAGE_HEADER = '\x19TRON Signed Message:\n32';
@@ -28,7 +27,7 @@ export default class Trx {
         this.tronWeb = tronWeb;
         this.injectPromise = injectpromise(this);
         window.transitionPostMessage = new TransitionPostMessage({
-            isDebugger: false,
+            isDebugger: true,
         });
         this.cache = {
             contracts: {},
@@ -1015,7 +1014,6 @@ export default class Trx {
                         'Private key does not match address in transaction'
                     );
             }
-            console.log(utils.crypto.signTransaction(privateKey, transaction));
             return window.transitionPostMessage._request({
                 data: transaction,
                 method: 'signTransaction',
@@ -1038,20 +1036,15 @@ export default class Trx {
             },
             value: privateKey,
         };
-        console.log(value);
         const signingKey = new SigningKey(value);
-        console.log(signingKey);
         const messageBytes = [
             ...toUtf8Bytes(
                 useTronHeader ? TRX_MESSAGE_HEADER : ETH_MESSAGE_HEADER
             ),
             ...utils.code.hexStr2byteArray(message),
         ];
-        console.log(messageBytes);
         const messageDigest = keccak256(messageBytes);
-        console.log(messageDigest);
         const signature = signingKey.signDigest(messageDigest);
-        console.log(signature);
         const signatureHex = [
             '0x',
             signature.r.substring(2),
@@ -1083,12 +1076,6 @@ export default class Trx {
         //     );
 
         try {
-            // const signatureHex = Trx._signTypedData(
-            //     domain,
-            //     types,
-            //     value,
-            //     privateKey
-            // );
             return window.transitionPostMessage._request({
                 data: {
                     domain,
@@ -1124,13 +1111,13 @@ export default class Trx {
             permissionId = 0;
         }
 
-        // if (!callback)
-        //     return this.injectPromise(
-        //         this.multiSign,
-        //         transaction,
-        //         privateKey,
-        //         permissionId
-        //     );
+        if (!callback)
+            return this.injectPromise(
+                this.multiSign,
+                transaction,
+                privateKey,
+                permissionId
+            );
 
         if (
             !utils.isObject(transaction) ||
@@ -1190,14 +1177,14 @@ export default class Trx {
 
         // sign
         try {
-            return window.transitionPostMessage._request({
-                data: transaction,
-                method: 'signTransaction',
-            });
-            // return callback(
-            //     null,
-            //     utils.crypto.signTransaction(privateKey, transaction)
-            // );
+            // return window.transitionPostMessage._request({
+            //     data: transaction,
+            //     method: 'signTransaction',
+            // });
+            return callback(
+                null,
+                utils.crypto.signTransaction(privateKey, transaction)
+            );
         } catch (ex) {
             throw new Error(ex);
         }

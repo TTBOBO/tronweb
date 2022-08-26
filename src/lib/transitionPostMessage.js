@@ -37,11 +37,11 @@ export default class TransitionPostMessage {
             name: handler,
             object: data,
         });
-        // if (window.GSWallet.postMessage) {
-        //     window.GSWallet.postMessage(object);
-        // } else {
-        //     window.webkit.messageHandlers[handler].postMessage(object);
-        // }
+        if (window.GSWallet.postMessage) {
+            window.GSWallet.postMessage(object);
+        } else {
+            window.webkit.messageHandlers[handler].postMessage(object);
+        }
     }
 
     /**

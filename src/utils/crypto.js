@@ -1,11 +1,11 @@
-import {ADDRESS_PREFIX, ADDRESS_PREFIX_BYTE, ADDRESS_SIZE} from './address';
-import {base64EncodeToString} from './code';
-import {base64DecodeFromString, hexStr2byteArray} from './code';
-import {encode58, decode58} from './base58';
-import {byte2hexStr, byteArray2hexStr} from './bytes';
-import {ec as EC} from 'elliptic';
-import {keccak256, sha256, SigningKey} from './ethersUtils';
-import {TypedDataEncoder} from './typedData';
+import { ADDRESS_PREFIX, ADDRESS_PREFIX_BYTE, ADDRESS_SIZE } from './address';
+import { base64EncodeToString } from './code';
+import { base64DecodeFromString, hexStr2byteArray } from './code';
+import { encode58, decode58 } from './base58';
+import { byte2hexStr, byteArray2hexStr } from './bytes';
+import { ec as EC } from 'elliptic';
+import { keccak256, sha256, SigningKey } from './ethersUtils';
+import { TypedDataEncoder } from './typedData';
 
 export function getBase58CheckAddress(addressBytes) {
     const hash0 = SHA256(addressBytes);
@@ -18,16 +18,13 @@ export function getBase58CheckAddress(addressBytes) {
 }
 
 export function decodeBase58Address(base58Sting) {
-    if (typeof (base58Sting) != 'string')
-        return false;
+    if (typeof base58Sting != 'string') return false;
 
-    if (base58Sting.length <= 4)
-        return false;
+    if (base58Sting.length <= 4) return false;
 
     let address = decode58(base58Sting);
 
-    if (base58Sting.length <= 4)
-        return false;
+    if (base58Sting.length <= 4) return false;
 
     const len = address.length;
     const offset = len - 4;
@@ -39,8 +36,11 @@ export function decodeBase58Address(base58Sting) {
     const hash1 = SHA256(hash0);
     const checkSum1 = hash1.slice(0, 4);
 
-    if (checkSum[0] == checkSum1[0] && checkSum[1] == checkSum1[1] && checkSum[2] ==
-        checkSum1[2] && checkSum[3] == checkSum1[3]
+    if (
+        checkSum[0] == checkSum1[0] &&
+        checkSum[1] == checkSum1[1] &&
+        checkSum[2] == checkSum1[2] &&
+        checkSum[3] == checkSum1[3]
     ) {
         return address;
     }
@@ -51,15 +51,13 @@ export function decodeBase58Address(base58Sting) {
 export function signTransaction(priKeyBytes, transaction) {
     if (typeof priKeyBytes === 'string')
         priKeyBytes = hexStr2byteArray(priKeyBytes);
-
     const txID = transaction.txID;
     const signature = ECKeySign(hexStr2byteArray(txID), priKeyBytes);
 
     if (Array.isArray(transaction.signature)) {
         if (!transaction.signature.includes(signature))
             transaction.signature.push(signature);
-    } else
-        transaction.signature = [signature];
+    } else transaction.signature = [signature];
     return transaction;
 }
 
@@ -99,7 +97,8 @@ export function _signTypedData(domain, types, value, privateKey) {
 
 export function getRowBytesFromTransactionBase64(base64Data) {
     const bytesDecode = base64DecodeFromString(base64Data);
-    const transaction = proto.protocol.Transaction.deserializeBinary(bytesDecode);
+    const transaction =
+        proto.protocol.Transaction.deserializeBinary(bytesDecode);
     const raw = transaction.getRawData();
 
     return raw.serializeBinary();
@@ -120,8 +119,7 @@ export function genPriKey() {
 }
 
 export function computeAddress(pubBytes) {
-    if (pubBytes.length === 65)
-        pubBytes = pubBytes.slice(1);
+    if (pubBytes.length === 65) pubBytes = pubBytes.slice(1);
 
     const hash = keccak256(pubBytes).toString().substring(2);
     const addressHex = ADDRESS_PREFIX + hash.substring(24);
@@ -137,17 +135,18 @@ export function getAddressFromPriKey(priKeyBytes) {
 export function decode58Check(addressStr) {
     const decodeCheck = decode58(addressStr);
 
-    if (decodeCheck.length <= 4)
-        return false;
+    if (decodeCheck.length <= 4) return false;
 
     const decodeData = decodeCheck.slice(0, decodeCheck.length - 4);
     const hash0 = SHA256(decodeData);
     const hash1 = SHA256(hash0);
 
-    if (hash1[0] === decodeCheck[decodeData.length] &&
+    if (
+        hash1[0] === decodeCheck[decodeData.length] &&
         hash1[1] === decodeCheck[decodeData.length + 1] &&
         hash1[2] === decodeCheck[decodeData.length + 2] &&
-        hash1[3] === decodeCheck[decodeData.length + 3]) {
+        hash1[3] === decodeCheck[decodeData.length + 3]
+    ) {
         return decodeData;
     }
 
@@ -155,19 +154,15 @@ export function decode58Check(addressStr) {
 }
 
 export function isAddressValid(base58Str) {
-    if (typeof (base58Str) !== 'string')
-        return false;
+    if (typeof base58Str !== 'string') return false;
 
-    if (base58Str.length !== ADDRESS_SIZE)
-        return false;
+    if (base58Str.length !== ADDRESS_SIZE) return false;
 
     let address = decode58(base58Str);
 
-    if (address.length !== 25)
-        return false;
+    if (address.length !== 25) return false;
 
-    if (address[0] !== ADDRESS_PREFIX_BYTE)
-        return false;
+    if (address[0] !== ADDRESS_PREFIX_BYTE) return false;
 
     const checkSum = address.slice(21);
     address = address.slice(0, 21);
@@ -176,16 +171,21 @@ export function isAddressValid(base58Str) {
     const hash1 = SHA256(hash0);
     const checkSum1 = hash1.slice(0, 4);
 
-    if (checkSum[0] == checkSum1[0] && checkSum[1] == checkSum1[1] && checkSum[2] ==
-        checkSum1[2] && checkSum[3] == checkSum1[3]
+    if (
+        checkSum[0] == checkSum1[0] &&
+        checkSum[1] == checkSum1[1] &&
+        checkSum[2] == checkSum1[2] &&
+        checkSum[3] == checkSum1[3]
     ) {
-        return true
+        return true;
     }
 
     return false;
 }
 
-export function getBase58CheckAddressFromPriKeyBase64String(priKeyBase64String) {
+export function getBase58CheckAddressFromPriKeyBase64String(
+    priKeyBase64String
+) {
     const priKeyBytes = base64DecodeFromString(priKeyBase64String);
     const pubBytes = getPubKeyFromPriKey(priKeyBytes);
     const addressBytes = computeAddress(pubBytes);
@@ -264,7 +264,7 @@ export function ECKeySign(hashBytes, priKeyBytes) {
 
 export function SHA256(msgBytes) {
     const msgHex = byteArray2hexStr(msgBytes);
-    const hashHex = sha256('0x' + msgHex).replace(/^0x/, '')
+    const hashHex = sha256('0x' + msgHex).replace(/^0x/, '');
     return hexStr2byteArray(hashHex);
 }
 
