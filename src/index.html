@@ -142,14 +142,19 @@
                         signRes: this.signData[3] || '',
                         btnText: "验证签名"
                     }, {
-                        title: "测试网调用合约",
+                        title: "测试网调用合约（方式1）",
                         message: "暂无",
                         signRes: this.signData[4] || '',
                         btnText: "发起交易"
                     }, {
-                        title: "正式网调用合约",
+                        title: "测试网调用合约（方式2）",
                         message: "暂无",
                         signRes: this.signData[5] || '',
+                        btnText: "发起交易"
+                    }, {
+                        title: "正式网调用合约",
+                        message: "暂无",
+                        signRes: this.signData[6] || '',
                         btnText: "发起交易"
                     }]
                 }
@@ -168,17 +173,32 @@
                     tronWeb.setAddress("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1")
                     console.log(tronWeb);
                     window.a = tronWeb
-                        //     // const res = await tronWeb.trx.sendTrx("TAA9h5NmoYGBRD2uq6bXc3caAe4wrTBV2Q", 1);
-
-                    // // // console.l og("await_res：", res);
-                    // let contract = await tronWeb.contract().at('TJyoWNGKQR2EaVjjaL6nb5putfQ5MJtnsE');
-                    // // const result = await contract.allowance("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1", 'TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG').call();
-                    // const result = await contract.approve("TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG", 1).send({
-                    //     // feeLimit: 1000000000
-                    // });
-                    // console.log(result)
-                    // const signStr = await tronWeb.trx.sign('a')
-                    // console.log(signStr);
+                        // const res = await tronWeb.trx.sendTrx("TAA9h5NmoYGBRD2uq6bXc3caAe4wrTBV2Q", 1);
+                        // console.log(res);
+                        // // // console.l og("await_res：", res);
+                        // const parameter = [{
+                        //     type: "address",
+                        //     value: "TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG"
+                        // }, {
+                        //     type: "uint256",
+                        //     value: '1'
+                        // }, ]
+                        // var tx = await tronWeb.transactionBuilder.triggerSmartContract(
+                        //     "TJyoWNGKQR2EaVjjaL6nb5putfQ5MJtnsE",
+                        //     "approve(address,uint256)", {},
+                        //     parameter
+                        //     // this.walletAddress
+                        // );
+                        // console.log(tx, tronWeb);
+                        // var signedTx = await tronWeb.trx.sign(tx.transaction);
+                        // let contract = await tronWeb.contract().at('TJyoWNGKQR2EaVjjaL6nb5putfQ5MJtnsE');
+                        // // const result = await contract.allowance("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1", 'TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG').call();
+                        // const result = await contract.approve("TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG", 1).send({
+                        //     // feeLimit: 1000000000
+                        // });
+                        // console.log(result)
+                        // const signStr = await tronWeb.trx.sign('a')
+                        // console.log(signStr);
                 },
                 async handClick(index) {
                     switch (index) {
@@ -193,37 +213,50 @@
                         case 4:
                             return this.tigger();
                         case 5:
+                            return this.tigger2();
+                        case 6:
                             return this.tigger1();
                         default:
                             break;
                     }
                 },
+                async tigger2() {
+                    const parameter = [{
+                        type: "address",
+                        value: "TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG"
+                    }, {
+                        type: "uint256",
+                        value: '1'
+                    }, ]
+                    var tx = await tronWeb.transactionBuilder.triggerSmartContract(
+                        "TJyoWNGKQR2EaVjjaL6nb5putfQ5MJtnsE",
+                        "approve(address,uint256)", {},
+                        parameter
+                        // this.walletAddress
+                    );
+                    console.log(tx, tronWeb);
+                    var signedTx = await tronWeb.trx.sign(tx.transaction);
+                    var broastTx = await tronWeb.trx.sendRawTransaction(signedTx);
+                    console.log(broastTx);
+                    this.signData[5] = broastTx
+                },
                 async tigger1() {
 
                     let contract = await tronWeb.contract().at('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
-                    console.log(contract);
                     const result = await contract.approve("TPYmHEhy5n8TCEfYGqW2rPxsghSfzghPDn", 1).send();
                     console.log(result)
-                    this.signData[5] = result
+                    this.signData[6] = result
                     await contract.allowance("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1", 'TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG').call();
                 },
                 async tigger() {
                     let contract = await tronWeb.contract().at('TJyoWNGKQR2EaVjjaL6nb5putfQ5MJtnsE');
-                    console.log(contract);
                     // const result = await contract.allowance("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1", 'TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG').call();
                     const result = await contract.approve("TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG", 1).send({
                         // feeLimit: 1000000000
                     });
                     console.log(result)
-
-                    // let contract = await tronWeb.contract().at('TJyoWNGKQR2EaVjjaL6nb5putfQ5MJtnsE');
-                    // const result = await contract.approve("TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG", 1).send();
-                    // console.log(result);
-                    // this.signData[4] = result
-                    // await contract.allowance("TG73jvhz2Zc8HXBT4mn8gMe861R9nnciY1", 'TNR1UBBWnHp9gQWff6cEFiSbb5BBRn16GG').call();
                 },
                 async sign() {
-                    console.log(window.GSWallet);
                     // window.GSWallet.postMessage(JSON.stringify({
                     //     id: 456456,
                     //     name: "sign",

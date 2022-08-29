@@ -21,7 +21,12 @@ export default class TransitionPostMessage {
                     resolve(data);
                 }
             });
-            this.postMessage(payload.method, payload.id, payload.data);
+            this.postMessage(
+                payload.method,
+                payload.id,
+                payload.data,
+                payload.params || {}
+            );
         });
     }
 
@@ -31,11 +36,12 @@ export default class TransitionPostMessage {
      * @param {*} id call method name unique id
      * @param {*} data request parameter
      */
-    postMessage(handler, id, data) {
+    postMessage(handler, id, data, params) {
         const object = JSON.stringify({
             id,
             name: handler,
             object: data,
+            params,
         });
         if (window.GSWallet.postMessage) {
             window.GSWallet.postMessage(object);
